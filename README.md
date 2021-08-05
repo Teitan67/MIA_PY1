@@ -5,3 +5,5 @@ Lenguaje C++
 
 ## Ejecuciòn 
 Para la ejecuciòn del programa debemos compilar el codigo en C++( Debes tener un compilador, en este caso se utilizo g++) y generara un archivo sin extension, este lo podemos ejecutar desde la terminal haciendo un ./main
+Oprimiendo "?" nos desplegara una lista de comandos permitidos dentro del Sistema.
+
