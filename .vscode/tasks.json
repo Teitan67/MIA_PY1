@@ -6,7 +6,7 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-g",
-                "${file}",
+                "*.cpp","analizador/*.cpp",//Agregamos todos los directorios donde tengamos codigo fuente
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
