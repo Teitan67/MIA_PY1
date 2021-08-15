@@ -6,12 +6,12 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-g",
-                "*.cpp","analizador/*.cpp",//Agregamos todos los directorios donde tengamos codigo fuente
+                "*.cpp","analizador/*.cpp","comandos/*.cpp","estructuras/*.cpp",//Agregamos todos los directorios donde tengamos codigo fuente
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "/home/teitan67/MIA_PY1/main"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "/home/teitan67/MIA_PY1"
             },
             "problemMatcher": [
                 "$gcc"

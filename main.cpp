@@ -12,7 +12,7 @@ int main()
     do
     {
         cout << "Ingrese un comando: ";
-        cin >> entrada;
+        getline(cin, entrada, '\n');
         //Automata para separar las diferentes entradas
         ejecucion = analizar(entrada);
     } while (ejecucion);
