@@ -55,7 +55,7 @@ bool analizar(string entrada)
         cout << "Creando disco..." << endl;
         //mkdisk -size=12 -path=hola/das
         string path = "nulo"; // Ruta predestinada del disco
-        int size = -1;     // Tamaño predeterminado
+        int size = -1;        // Tamaño predeterminado
         char ajuste = 'f';    // F primer ajuste W peor ajuste B mejor ajuste predeterminado F
         char unidad = 'm';    // Unidad puede ser m o k predeterminado  m
         if (comando.size() >= 3)
@@ -102,12 +102,55 @@ bool analizar(string entrada)
             }
             else
             {
-                mkdisk( path, size,  ajuste, unidad);
+                mkdisk(path, size, ajuste, unidad);
             }
         }
         else
         {
             cout << "ERROR: cantidad de parametros insuficientes " << endl;
+        }
+    }
+    else if (comando[0] == "rmdisk ")
+    {
+        if (comando.size() == 2)
+        {
+            vector<string> parametro = split(comando[1], '=');
+            if (parametro.size() == 2)
+            {
+                std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                              { c = ::tolower(c); });
+                string path;
+                if (parametro[0] == "path")
+                {
+                    path = parametro[1];
+                }
+                string respuesta;
+                cout << "¿Seguro que desea eliminar este disco " << path << "? (s/n) ";
+                
+                getline(cin, respuesta, '\n');
+                if (respuesta == "s"||respuesta=="S")
+                {
+                    char ruta[path.size() + 1];
+                    strcpy(ruta, path.c_str());
+                    cout<<"Eliminando #"<<ruta<<"..."<<endl;
+                    if( remove( "myfile.txt" ) != 0 )
+                    {
+                        perror( "Error al eliminar archivo" );
+                    }
+                    else
+                    {
+                        puts( "Archivo eliminado" );
+                    }
+                }
+            }
+            else
+            {
+                cout << "ERROR: Datos erroneos" << endl;
+            }
+        }
+        else
+        {
+            cout << "ERROR:Cantidad de parametros incorrecta" << endl;
         }
     }
     else

@@ -1,5 +1,5 @@
 #include <string.h>
-#include "string"salir
+#include "string"
 #include <time.h>
 using namespace std;
 struct Particion
