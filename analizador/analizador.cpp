@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <string>
 #include "../comandos/comandos.hpp"
+#include <fstream>
+
 
 using namespace std;
 string listaComandos =
@@ -126,20 +128,20 @@ bool analizar(string entrada)
                 }
                 string respuesta;
                 cout << "¿Seguro que desea eliminar este disco " << path << "? (s/n) ";
-                
+
                 getline(cin, respuesta, '\n');
-                if (respuesta == "s"||respuesta=="S")
+                if (respuesta == "s" || respuesta == "S")
                 {
-                    char ruta[path.size() + 1];
+                    char ruta[path.size()];
                     strcpy(ruta, path.c_str());
-                    cout<<"Eliminando #"<<ruta<<"..."<<endl;
-                    if( remove( "myfile.txt" ) != 0 )
+                    cout << "Eliminando *" << ruta << "*" << endl;
+                    if (remove(ruta) != 0)
                     {
-                        perror( "Error al eliminar archivo" );
+                        perror("Error al eliminar archivo");
                     }
                     else
                     {
-                        puts( "Archivo eliminado" );
+                        puts("Archivo eliminado");
                     }
                 }
             }
@@ -151,6 +153,37 @@ bool analizar(string entrada)
         else
         {
             cout << "ERROR:Cantidad de parametros incorrecta" << endl;
+        }
+    }
+    else if (comando[0] == "exec ")
+    {
+        vector<string> parametro = split(comando[1], '=');
+        if (parametro[0] == "path")
+        {
+            cout << "Ejecutando... " << parametro[1] << endl;
+            vector<string> comandos;
+            ifstream input_file(parametro[1]);
+            if (!input_file.is_open())
+            {
+                cerr << "No se puede abrir archivo - '"
+                     << parametro[1] << "'" << endl;
+                return EXIT_FAILURE;
+            }
+            string line;
+            while (getline(input_file, line))
+            {
+                comandos.push_back(line);
+            }
+
+            for (const auto &i : comandos){
+                cout << i << endl;
+                analizar(i);
+            }
+            input_file.close();
+        }
+        else
+        {
+            cout << "ERROR: Necesitamos un path y tenemos:" << parametro[0] << endl;
         }
     }
     else

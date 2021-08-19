@@ -5,15 +5,51 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cstdlib>
+#include <vector>
 #include <time.h>
 #include "../estructuras/estructuras.hpp"
 
 using namespace std;
 
+vector<string> splits(string str, char pattern)
+{
+
+    int posInit = 0;
+    int posFound = 0;
+    string splitted;
+    vector<string> results;
+    while (posFound >= 0)
+    {
+        posFound = str.find(pattern, posInit);
+
+        splitted = str.substr(posInit, posFound - posInit);
+        posInit = posFound + 1;
+        results.push_back(splitted);
+    }
+
+    return results;
+}
+
+void mkdir(string path){
+  vector<string> carpetas = splits(path, '/');
+  if(carpetas.size()>1){
+    string ruta="mkdir -p ";
+    for (int i = 0; i < carpetas.size()-1; i++)
+    {
+      ruta+=carpetas[i]+"/";
+    }
+    char r[ruta.size()];
+    strcpy(r, ruta.c_str());
+    system(r);
+  }
+}
+
 void mkdisk(string path,int size, char ajuste,char unidad){
     cout<<"Creación de disco exitosa!!"<<endl;
     char ruta[path.size() + 1];
+    path.replace(path.size()-1,1,"");
     strcpy(ruta, path.c_str());
+    mkdir(path);
     FILE *file=NULL;
     file=fopen(ruta,"r");
     if(file!=NULL){

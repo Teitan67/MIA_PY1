@@ -1,0 +1,4 @@
+mkdisk -path=disco1.disk -size=5 -u=k 
+mkdisk -path=disco2.disk -size=2
+rmdisk -path=disco1.disk
+mkdisk -path=discos/disco3.disk -size=3 -f=ff
