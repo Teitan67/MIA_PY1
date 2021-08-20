@@ -186,6 +186,67 @@ bool analizar(string entrada)
             cout << "ERROR: Necesitamos un path y tenemos:" << parametro[0] << endl;
         }
     }
+    else if (comando[0] == "fdisk ")
+    {
+        for (size_t i = 1; i < comando.size(); i++)
+            {
+                vector<string> parametro = split(comando[i], '=');
+                if (parametro.size() == 2)
+                {
+                    //Parametro
+                    float size=0;
+                    char u='k';
+                    string path="nulo";
+                    char type='p';
+                    char f='w';
+                    string delete_="nulo";
+                    string name="nulo";
+                    float add=0;
+
+                    std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                                  { c = ::tolower(c); });
+                    if (parametro[0] == "path")
+                    {
+                        path = parametro[1];
+                    }
+                    else if (parametro[0] == "name")
+                    {
+                        name = parametro[1];
+                    }
+                    else if (parametro[0] == "size")
+                    {
+                        size = stod(parametro[1]);
+                    }
+                    else if (parametro[0] == "u")
+                    {
+                        u = parametro[1].at(0);
+                    }
+                    else if (parametro[0] == "type")
+                    {
+                        type = parametro[1].at(0);
+                    }
+                    else if (parametro[0] == "f")
+                    {
+                        f = parametro[1].at(0);
+                    }
+                    else if (parametro[0] == "delete")
+                    {
+                        delete_ = parametro[1].at(0);
+                    }
+                    else if (parametro[0] == "add")
+                    {
+                        add = stod(parametro[1]) ;
+                    }
+                    //fdisk –Size=300 –path=/home/Disco1.disk –name=Particion1
+                    cout<<"Size:"<< size<<" path:"<<path<<" Name:"<<name<<endl;
+                    //exec -path=entrada.txt
+                }
+                else
+                {
+                    cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+                }
+            }
+    }
     else
     {
         cout << "ERROR: Comando no reconocido! #" << comando[0] << "#" << endl
