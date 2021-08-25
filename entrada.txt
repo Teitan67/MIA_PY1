@@ -3,4 +3,3 @@ mkdisk -path=disco2.disk -size=2
 rmdisk -path=disco1.disk
 rmdisk -path=disco2.disk
 mkdisk -path=discos/disco3.disk -size=3 -f=ff
-fdisk -Size=300 -path=discos/disco3.disk -name=Particion1 

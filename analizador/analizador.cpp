@@ -8,7 +8,6 @@
 #include "../comandos/comandos.hpp"
 #include <fstream>
 
-
 using namespace std;
 string listaComandos =
     "LISTA DE COMANDOS VALIDOS\n"
@@ -155,6 +154,12 @@ bool analizar(string entrada)
             cout << "ERROR:Cantidad de parametros incorrecta" << endl;
         }
     }
+    else if (comando[0] == "pausa "||comando[0] == "pausa")
+    {
+        string r="";
+        cout<<"Escriba enter para continuar...";
+        getline(cin, r, '\n');
+    }
     else if (comando[0] == "exec ")
     {
         vector<string> parametro = split(comando[1], '=');
@@ -175,7 +180,8 @@ bool analizar(string entrada)
                 comandos.push_back(line);
             }
 
-            for (const auto &i : comandos){
+            for (const auto &i : comandos)
+            {
                 cout << i << endl;
                 analizar(i);
             }
@@ -188,64 +194,74 @@ bool analizar(string entrada)
     }
     else if (comando[0] == "fdisk ")
     {
+        float size = 0;
+        char u = 'k';
+        string path = "nulo";
+        char type = 'p';
+        char f = 'w';
+        string delete_ = "nulo";
+        string name = "nulo";
+        float add = 0;
         for (size_t i = 1; i < comando.size(); i++)
+        {
+            vector<string> parametro = split(comando[i], '=');
+            if (parametro.size() == 2)
             {
-                vector<string> parametro = split(comando[i], '=');
-                if (parametro.size() == 2)
-                {
-                    //Parametro
-                    float size=0;
-                    char u='k';
-                    string path="nulo";
-                    char type='p';
-                    char f='w';
-                    string delete_="nulo";
-                    string name="nulo";
-                    float add=0;
+                //Parametro
 
-                    std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
-                                  { c = ::tolower(c); });
-                    if (parametro[0] == "path")
-                    {
-                        path = parametro[1];
-                    }
-                    else if (parametro[0] == "name")
-                    {
-                        name = parametro[1];
-                    }
-                    else if (parametro[0] == "size")
-                    {
-                        size = stod(parametro[1]);
-                    }
-                    else if (parametro[0] == "u")
-                    {
-                        u = parametro[1].at(0);
-                    }
-                    else if (parametro[0] == "type")
-                    {
-                        type = parametro[1].at(0);
-                    }
-                    else if (parametro[0] == "f")
-                    {
-                        f = parametro[1].at(0);
-                    }
-                    else if (parametro[0] == "delete")
-                    {
-                        delete_ = parametro[1].at(0);
-                    }
-                    else if (parametro[0] == "add")
-                    {
-                        add = stod(parametro[1]) ;
-                    }
-                    //fdisk –Size=300 –path=/home/Disco1.disk –name=Particion1
-                    cout<<"Size:"<< size<<" path:"<<path<<" Name:"<<name<<endl;
-                    //exec -path=entrada.txt
-                }
-                else
+                std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                              { c = ::tolower(c); });
+                if (parametro[0] == "path")
                 {
-                    cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+                    path = parametro[1];
+                }
+                else if (parametro[0] == "name")
+                {
+                    name = parametro[1];
+                }
+                else if (parametro[0] == "size")
+                {
+                    size = stod(parametro[1]);
+                }
+                else if (parametro[0] == "u")
+                {
+                    u = parametro[1].at(0);
+                }
+                else if (parametro[0] == "type")
+                {
+                    type = parametro[1].at(0);
+                }
+                else if (parametro[0] == "f")
+                {
+                    f = parametro[1].at(0);
+                }
+                else if (parametro[0] == "delete")
+                {
+                    delete_ = parametro[1].at(0);
+                }
+                else if (parametro[0] == "add")
+                {
+                    add = stod(parametro[1]);
                 }
             }
+            else
+            {
+                cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+            }
+        }
+        //fdisk -Size=300 -path=/home/Disco1.disk -name=Particion1
+        //exec -path=entrada.txt 
+        if (delete_ == "nulo" && add == 0)
+        {
+            cout << "Creando particion..." << endl;
+            fdisk(size, u, path, type, f, name);
+
+            
+        }
+        else
+        {
+            cout << "No se esta ejecutando nada de fdisk " << endl;
+        }
     }
     else
     {
