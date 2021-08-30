@@ -169,6 +169,7 @@ MBR getMBR(string path)
 {
   MBR mbr;
   //Depurar ruta
+ 
   char ruta[path.size()];
   path.replace(path.size() - 1, 1, "");
   strcpy(ruta, path.c_str());
@@ -199,8 +200,20 @@ MBR getMBR(string path)
 //size, u,string,type,f,name
 void fdisk(float size, char unidad, string path, char type, char fit, string name)
 {
-  MBR mbr_= getMBR(path);
-  cout << "Size del mbr obtenido: " << mbr_.mbr_tamano << endl;
+  MBR mbr;
+   mbr.mbr_tamano = 0;
+  mbr.mbr_disk_signature = rand() % 1000;
+  mbr.mbr_fecha_creacion = time(0);
+  for (int i = 0; i < 4; i++)
+  {
+    mbr.mbr_partition[i].part_status = '0';
+    mbr.mbr_partition[i].part_size = 0;
+    mbr.mbr_partition[i].part_fit = 'f';
+    mbr.mbr_partition[i].part_start = 0;
+    mbr.mbr_partition[i].part_name = "";
+  }
+  mbr=getMBR(path);
+  cout << "Size del mbr obtenido: " << mbr.mbr_tamano << endl;
 
   //cout<<mbr.mbr_tamano<<endl;
   /*if (mbr.mbr_tamano > 0)
