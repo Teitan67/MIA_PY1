@@ -1,4 +1,4 @@
-#include <string.h>
+
 using namespace std;
 struct Particion
 {
@@ -7,23 +7,22 @@ struct Particion
     char part_fit = 'f'; //las opciones por default
     int part_start=-1;
     int part_size=-1;
-    string part_name;
+    char part_name [30];
 };
 
 struct MBR
 {
-    int id;
+    char mbr_id[30];
     int mbr_tamano;
     time_t mbr_fecha_creacion;
     int mbr_disk_signature;
     char disk_fit;
     Particion mbr_partition[4];
-
 };
 
 struct Disco
 {
-    string path;
+    char * path;
     int size;
     char ajuste;
     char unidad;

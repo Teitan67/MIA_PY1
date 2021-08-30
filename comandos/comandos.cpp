@@ -12,30 +12,6 @@
 
 using namespace std;
 
-Particion crearParticion(int size, string name, char tipo, char fit, int inicio)
-{
-  Particion newParticion;
-  newParticion.part_fit = fit;
-  newParticion.part_name = name;
-  newParticion.part_size = size;
-  newParticion.part_start = inicio;
-  newParticion.part_status = 'c'; //conectada
-  newParticion.part_type = tipo;
-  return newParticion;
-}
-int espacioDisponible(MBR mbr)
-{
-  for (int i = 0; i < 4; i++)
-  {
-    if (mbr.mbr_partition[i].part_size == 0)
-    {
-      return i;
-    }
-    cout << "Size: " << mbr.mbr_partition[i].part_size << endl;
-  }
-
-  return -1;
-}
 Particion *burbuja(Particion a[4])
 {
   int i, j;
@@ -50,13 +26,46 @@ Particion *burbuja(Particion a[4])
       }
   return a;
 }
+
+bool nombreDisponible(Particion partciones[4], string name)
+{
+  for (size_t i = 0; i < 4; i++)
+  {
+    if (partciones[i].part_name == name)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void escribirMBR(MBR mbr, string path)
+{
+  char ruta[path.size() + 1];
+  path.replace(path.size() - 1, 1, "");
+  strcpy(ruta, path.c_str());
+  FILE *file = NULL;
+  file = fopen(ruta, "wb");
+  if (file)
+  {
+    fseek(file, 0, SEEK_SET);
+    fwrite(&mbr, sizeof(MBR), 1, file);
+    fclose(file);
+    cout << "Creacion exitosa de particcion exitosa" << endl;
+  }
+  else
+  {
+    perror("ERROR: No existe el archivo en la ruta #");
+    cout << ruta << "#" << endl;
+  }
+}
+
 int getInicioParticion(MBR mbr, float size_partition)
 {
   Particion *particiones = burbuja(mbr.mbr_partition);
   int inicio = sizeof(mbr);
   for (int i = 0; i < 3; i++)
   {
-
     if (particiones[i].part_size == 0)
     {
       return inicio; //Primera posicion vacia
@@ -70,19 +79,51 @@ int getInicioParticion(MBR mbr, float size_partition)
       return particiones[i].part_start + particiones[i].part_size; //Si cabe entre esos dos
     }
   }
-
   return -1;
 }
-void escribirMBR(MBR mbr, char *ruta)
+
+Particion crearParticion(int size, string name, char tipo, char fit, int inicio, char unidad)
 {
-  FILE *file = NULL;
-  file = fopen(ruta, "r");
+  if (unidad == 'k')
+  {
+    size = size * 1024;
+  }
+  else
+  {
+    size = size * 1024 * 1024;
+  }
+  Particion newParticion;
+  newParticion.part_fit = fit;
+  strcpy(newParticion.part_name, name.c_str());
+  newParticion.part_size = size;
+  newParticion.part_start = inicio;
+  newParticion.part_status = 'c'; //conectada
+  newParticion.part_type = tipo;
+  return newParticion;
+}
 
-  cout << "Escribiendo MBR...\nFecha de creacion: " << asctime(gmtime(&mbr.mbr_fecha_creacion)) << endl;
-  fseek(file, 0, SEEK_SET);
-  fwrite(&mbr, sizeof(MBR), 1, file);
+int espacioDisponible(MBR mbr)
+{
+  for (int i = 0; i < 4; i++)
+  {
+    if (mbr.mbr_partition[i].part_size == 0)
+    {
+      return i;
+    }
+  }
+  return -1;
+}
 
-  fclose(file);
+int espacioTotalDisponible(MBR mbr)
+{
+  int espacioDisponible = mbr.mbr_tamano;
+  int espacioOcupado = sizeof(mbr);
+  for (int i = 0; i < 4; i++)
+  {
+    espacioOcupado += mbr.mbr_partition[i].part_size;
+  }
+  espacioDisponible = espacioDisponible - espacioOcupado;
+  return espacioDisponible;
 }
 
 vector<string> splits(string str, char pattern)
@@ -104,6 +145,26 @@ vector<string> splits(string str, char pattern)
   return results;
 }
 
+MBR obtenerMbr(string path)
+{
+  MBR mbr_;
+  char ruta[path.size() + 1];
+  path.replace(path.size() - 1, 1, "");
+  strcpy(ruta, path.c_str());
+
+  FILE *file = NULL;
+  file = fopen(ruta, "rb");
+  if (file)
+  {
+    fseek(file, 0, SEEK_SET);
+    fread(&mbr_, sizeof(MBR), 1, file);
+    fclose(file);
+    return mbr_;
+  }
+  cout << "ERROR: No existe el archivo en la ruta #" << ruta << "#" << endl;
+  return mbr_;
+}
+
 void mkdir(string path)
 {
   vector<string> carpetas = splits(path, '/');
@@ -122,14 +183,13 @@ void mkdir(string path)
 
 void mkdisk(string path, int size, char ajuste, char unidad)
 {
-  cout << "Creación de disco exitosa!!" << endl;
   char ruta[path.size() + 1];
   path.replace(path.size() - 1, 1, "");
   strcpy(ruta, path.c_str());
   mkdir(path);
   FILE *file = NULL;
-  file = fopen(ruta, "r");
-  if (file != NULL)
+  file = fopen(ruta, "wb");
+  if (!file)
   {
     cout << "ERROR: El archivo ya existe dentro de la ruta actual" << endl;
     return;
@@ -142,11 +202,8 @@ void mkdisk(string path, int size, char ajuste, char unidad)
   {
     size = size * 1024 * 1024;
   }
-  file = fopen(ruta, "wb");
-  fwrite("\0", 1, 1, file);
   fseek(file, size, SEEK_SET);
   fwrite("\0", 1, 1, file);
-
   MBR mbr;
   mbr.mbr_tamano = size;
   mbr.mbr_disk_signature = rand() % 1000;
@@ -157,80 +214,66 @@ void mkdisk(string path, int size, char ajuste, char unidad)
     mbr.mbr_partition[i].part_size = 0;
     mbr.mbr_partition[i].part_fit = 'f';
     mbr.mbr_partition[i].part_start = size;
-    mbr.mbr_partition[i].part_name = "";
   }
-  cout << "Escribiendo MBR...\nFecha de creacion: " << asctime(gmtime(&mbr.mbr_fecha_creacion)) << endl;
-  fseek(file, 0, SEEK_SET);
-  fwrite(&mbr, sizeof(MBR), 1, file);
-
-  fclose(file);
-}
-MBR getMBR(string path)
-{
-  MBR mbr;
-  //Depurar ruta
-  char ruta[path.size()];
-  path.replace(path.size() - 1, 1, "");
-  strcpy(ruta, path.c_str());
-  FILE *file = NULL;
-  cout << "#" << ruta << "#" << endl;
-  if ((file = fopen(ruta, "rb+")))
+  if (sizeof(mbr) < size)
   {
-    size_t res;
     fseek(file, 0, SEEK_SET);
-    res = fread(&mbr, sizeof(mbr) , 1, file);
+    fwrite(&mbr, sizeof(MBR), 1, file);
+    fflush(file);
+    fclose(file);
+    cout << "Creación de disco exitosa!!" << endl;
+    cout << "Fecha de creacion de disco: " << asctime(gmtime(&mbr.mbr_fecha_creacion)) << endl;
+  }
+}
 
-    if (res != 1)
+void fdisk(float size, char unidad, string path, char type, char fit, string name)
+{
+  MBR mbr = obtenerMbr(path);
+  if (mbr.mbr_tamano > 0)
+  {
+    int espacio = espacioTotalDisponible(mbr);
+    cout << "Espacio disponible del disco:" << espacio << endl;
+    int e_disponiblePos = espacioDisponible(mbr);
+    int s = 0;
+    if (unidad = 'k')
     {
-      perror("Error al leer el archivo ");
+      s = size * 1024;
+    }
+    else
+    {
+      s = size * 1024 * 1024;
+    }
+    espacio -= s;
+    if (e_disponiblePos != -1 && espacio > 0)
+    {
+      if (nombreDisponible(mbr.mbr_partition, name))
+      {
+        int inicio = getInicioParticion(mbr, size);
+        if (inicio != -1)
+        {
+          Particion nuevaParticion = crearParticion(size, name, type, fit, inicio, unidad);
+          mbr.mbr_partition[e_disponiblePos] = nuevaParticion;
+          escribirMBR(mbr, path);
+        }
+        else
+        {
+          cout << "ERROR: No hay espacio para la partición " << name << endl;
+        }
+      }
+      else
+      {
+        cout << "ERROR: Ya existe una particion " << name << " en este disco " << endl;
+      }
+    }
+    else
+    {
+      cout << "Error: No se pueden hacer más particiones por falta de espacio o cantidad" << endl;
     }
   }
   else
   {
-    perror("Error al abrir archivo ");
+    cout << "ERROR: Error al obtener el mbr" << endl;
   }
-
-  if (fclose(file) != 0)
-  {
-    perror("Error al cerrar: ");
-  }
-  return mbr;
-}
-//size, u,string,type,f,name
-void fdisk(float size, char unidad, string path, char type, char fit, string name)
-{
-  MBR mbr_= getMBR(path);
-  cout << "Size del mbr obtenido: " << mbr_.mbr_tamano << endl;
-
-  //cout<<mbr.mbr_tamano<<endl;
-  /*if (mbr.mbr_tamano > 0)
-  {
-    int e_disponible = espacioDisponible(mbr);
-    if (e_disponible != -1)
-    {
-      int inicio = getInicioParticion(mbr, size);
-      if (inicio!=-1)
-      {
-        Particion nuevaParticion=crearParticion( size,  name,  type,  fit,  inicio);
-        mbr.mbr_partition[e_disponible]=nuevaParticion;
-        char ruta[path.size() + 1];
-        path.replace(path.size() - 1, 1, "");
-        strcpy(ruta, path.c_str());
-        escribirMBR(mbr,ruta);
-      }
-      else
-      {
-        cout<<"ERROR: No hay espacio para la partición "<<name<<endl;
-      }
-      
-    }
-    else
-    {
-      cout << "Error: No se pueden hacer más particiones" << endl;
-    }
-  }else{
-    cout<<"ERROR: Error al obtener el mbr"<<endl;
-  }*/
 }
 
-//fdisk -Size=300 -path=discos/disco3.disk -name=Particion1
+//fdisk -Size=1 -path=discos/disco3.disk -name=Particion1

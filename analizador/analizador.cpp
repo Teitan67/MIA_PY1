@@ -36,6 +36,7 @@ vector<string> split(string str, char pattern)
 
 bool analizar(string entrada)
 {
+    
     //Separamos el comando en un arreglo de cadenas
     vector<string> comando = split(entrada, '-');
 
@@ -53,7 +54,7 @@ bool analizar(string entrada)
     }
     else if (comando[0] == "mkdisk ")
     {
-        cout << "Creando disco..." << endl;
+        //cout << "Creando disco..." << endl;
         //mkdisk -size=12 -path=hola/das
         string path = "nulo"; // Ruta predestinada del disco
         int size = -1;        // Tamaño predeterminado
@@ -133,7 +134,7 @@ bool analizar(string entrada)
                 {
                     char ruta[path.size()];
                     strcpy(ruta, path.c_str());
-                    cout << "Eliminando *" << ruta << "*" << endl;
+                    //cout << "Eliminando *" << ruta << "*" << endl;
                     if (remove(ruta) != 0)
                     {
                         perror("Error al eliminar archivo");
@@ -165,7 +166,7 @@ bool analizar(string entrada)
         vector<string> parametro = split(comando[1], '=');
         if (parametro[0] == "path")
         {
-            cout << "Ejecutando... " << parametro[1] << endl;
+            //cout << "Ejecutando... " << parametro[1] << endl;
             vector<string> comandos;
             ifstream input_file(parametro[1]);
             if (!input_file.is_open())
@@ -253,7 +254,7 @@ bool analizar(string entrada)
         //exec -path=entrada.txt 
         if (delete_ == "nulo" && add == 0)
         {
-            cout << "Creando particion..." << endl;
+            //cout << "Creando particion..." << endl;
             fdisk(size, u, path, type, f, name);
 
             
@@ -268,5 +269,6 @@ bool analizar(string entrada)
         cout << "ERROR: Comando no reconocido! #" << comando[0] << "#" << endl
              << endl;
     }
+    cout<<endl;
     return true;
 }
