@@ -1,5 +1,7 @@
-mkdisk -path=disco1.disk -size=5 -u=k 
-mkdisk -path=disco2.disk -size=2
-rmdisk -path=disco1.disk
-rmdisk -path=disco2.disk
-mkdisk -path=discos/disco3.disk -size=3 -f=ff
+rmdisk -path=discos/disco3.disk
+mkdisk -path=discos/disco3.disk -size=10 -f=ff -u=k
+fdisk -size=3 -path=discos/disco3.disk -name=Particion1 
+fdisk -size=3 -path=discos/disco3.disk -name=Particion2
+fdisk -size=3 -path=discos/disco3.disk -name=Particion3
+fdisk -size=3 -path=discos/disco3.disk -name=Particion4
+fdisk -size=3 -path=discos/disco3.disk -name=Particion5
