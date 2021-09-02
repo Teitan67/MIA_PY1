@@ -1,7 +1,6 @@
 rmdisk -path=discos/disco3.disk
 mkdisk -path=discos/disco3.disk -size=10 -f=ff -u=k
 fdisk -size=3 -path=discos/disco3.disk -name=Particion1 
-fdisk -size=3 -path=discos/disco3.disk -name=Particion2
-fdisk -size=3 -path=discos/disco3.disk -name=Particion3
-fdisk -size=3 -path=discos/disco3.disk -name=Particion4
-fdisk -size=3 -path=discos/disco3.disk -name=Particion5
+fdisk -size=1 -path=discos/disco3.disk -name=Particion2
+fdisk -size=3 -path=discos/disco3.disk -name=ParticionExt -type=e
+fdisk -size=1 -path=discos/disco3.disk -name=LOGICA1 -type=l

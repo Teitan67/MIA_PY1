@@ -27,6 +27,30 @@ Particion *burbuja(Particion a[4])
   return a;
 }
 
+Particion *getParticionesLogicas(string path){
+  char ruta[path.size() + 1];
+  strcpy(ruta, path.c_str());
+
+  FILE *file = NULL;
+  file = fopen(ruta, "rb");
+  if (file)
+  {
+    MBR mbr=obtenerMbr(path);
+    int noLogicas=mbr.noLogicas;
+    Particion logicas[noLogicas];
+    fseek(file, sizeof(MBR), SEEK_SET);
+    for (int i = 0; i < mbr.noLogicas; i++)
+    {
+      fread(&logicas[i], sizeof(Particion), 1, file);
+      fseek(file, sizeof(Particion), SEEK_SET);
+    }
+    fclose(file);
+    return logicas;
+  }
+  Particion nulas[];
+  return nulas;
+}
+
 bool nombreDisponible(Particion partciones[4], string name)
 {
   for (size_t i = 0; i < 4; i++)
@@ -39,6 +63,59 @@ bool nombreDisponible(Particion partciones[4], string name)
   return true;
 }
 
+bool particionExtendidaDisponible(Particion partciones[4], char tipo)
+{
+  for (size_t i = 0; i < 4; i++)
+  {
+    if (partciones[i].part_type == tipo && partciones[i].part_type == 'e')
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+Particion getParticionExtendida(Particion partciones[4])
+{
+  for (size_t i = 0; i < 4; i++)
+  {
+    if (partciones[i].part_type == 'e')
+    {
+      return partciones[i];
+    }
+  }
+  Particion pVacia;
+  return pVacia;
+}
+
+
+int getDisponibleExtendida(Particion extendida, int noLogicas, string path)
+{
+  int disponible = extendida.part_size;
+  if (noLogicas > 0)
+  {
+    Particion logicas[noLogicas + 1];
+    MBR mbr_;
+    char ruta[path.size() + 1];
+    path.replace(path.size() - 1, 1, "");
+    strcpy(ruta, path.c_str());
+
+    FILE *file = NULL;
+    file = fopen(ruta, "rb");
+    if (file)
+    {
+      fseek(file, sizeof(MBR), SEEK_SET);
+      for (int i = 0; i < noLogicas; i++)
+      {
+        fread(&logicas[i], sizeof(Particion), 1, file);
+        disponible -= logicas[i].part_size;
+        fseek(file, sizeof(Particion), SEEK_SET);
+      }
+      fclose(file);
+    }
+  }
+  return disponible;
+}
 void escribirMBR(MBR mbr, string path)
 {
   char ruta[path.size() + 1];
@@ -145,6 +222,68 @@ vector<string> splits(string str, char pattern)
   return results;
 }
 
+void crearParticionLogica(MBR mbr, string path, int size, string name, char type, char fit, char unidad)
+{
+  int inicioBinario = sizeof(MBR);
+  Particion pExtendida = getParticionExtendida(mbr.mbr_partition);
+  int inicioLogicas = pExtendida.part_start + sizeof(Particion);
+  int finLogicas = pExtendida.part_start + pExtendida.part_size;
+  Particion logicas[mbr.noLogicas + 1];
+  char ruta[path.size() + 1];
+  strcpy(ruta, path.c_str());
+  if (mbr.noLogicas == 0)
+  {
+    cout << "Inicio de logicas:" << inicioLogicas << endl;
+    cout << "Fin de logicas:" << finLogicas << endl;
+    FILE *file = NULL;
+    file = fopen(ruta, "wb");
+    int movimientoBinario = sizeof(MBR)+1;
+    if (file)
+    {
+      Particion logica;
+      logica.part_status='c';
+      logica.part_type='l';
+      logica.part_fit=fit;
+      logica.part_start=inicioLogicas;
+      logica.part_size=size;
+      strcpy(logica.part_name, name.c_str());
+      fseek(file, movimientoBinario, SEEK_SET);
+      fwrite(&logica, sizeof(Particion), 1, file);
+      fclose(file);
+      cout<<"Archivo creado exitosamente"<<endl;
+    
+    }
+  }
+  mbr.noLogicas=mbr.noLogicas+1;
+  escribirMBR(mbr,path);
+  FILE *file = NULL;
+  file = fopen(ruta, "rb");
+  int movimientoBinario = sizeof(MBR)+1;
+  if (file)
+  {
+    fseek(file, movimientoBinario, SEEK_SET);
+    for (int i = 0; i < mbr.noLogicas + 1; i++)
+    {
+      fread(&logicas[i], sizeof(Particion), 1, file);
+      movimientoBinario += sizeof(MBR);
+      fseek(file, movimientoBinario, SEEK_SET);
+    }
+    fclose(file);
+  }
+  cout << endl
+       << endl;
+  for (int i = 0; i < 4; i++)
+  {
+    cout << "Inicio Particion: " << mbr.mbr_partition[i].part_start << " Size actual:" << mbr.mbr_partition[i].part_size << endl;
+  }
+  cout << endl
+       << "PARICIONES LOGICAS" << endl;
+  for (int i = 0; i < mbr.noLogicas; i++)
+  {
+    cout <<"Nombre de particion: "<<logicas[i].part_name << endl;
+  }
+}
+
 MBR obtenerMbr(string path)
 {
   MBR mbr_;
@@ -239,35 +378,67 @@ void fdisk(float size, char unidad, string path, char type, char fit, string nam
     {
       s = size * 1024;
     }
+    else if (unidad = 'b')
+    {
+      s = size;
+    }
     else
     {
       s = size * 1024 * 1024;
     }
-    espacio -= s;
-    if (e_disponiblePos != -1 && espacio > 0)
+    if (type == 'l')
     {
-      if (nombreDisponible(mbr.mbr_partition, name))
+      Particion particionExtendida = getParticionExtendida(mbr.mbr_partition);
+      cout << "Validacion extendida " << particionExtendida.part_size << endl;
+      if (particionExtendida.part_size > 0)
       {
-        int inicio = getInicioParticion(mbr, size);
-        if (inicio != -1)
+        int disponibleExtendida = getDisponibleExtendida(particionExtendida, mbr.noLogicas, path);
+        if (disponibleExtendida > size)
         {
-          Particion nuevaParticion = crearParticion(size, name, type, fit, inicio, unidad);
-          mbr.mbr_partition[e_disponiblePos] = nuevaParticion;
-          escribirMBR(mbr, path);
+          crearParticionLogica(mbr, path, s, name, type, fit, unidad);
         }
-        else
-        {
-          cout << "ERROR: No hay espacio para la partición " << name << endl;
-        }
+        cout << "Espacio disponible en extendida " << disponibleExtendida << endl;
       }
       else
       {
-        cout << "ERROR: Ya existe una particion " << name << " en este disco " << endl;
+        cout << "ERROR: No hay particion extendida para crear una lógica" << endl;
       }
     }
     else
     {
-      cout << "Error: No se pueden hacer más particiones por falta de espacio o cantidad" << endl;
+      espacio -= s;
+      if (e_disponiblePos != -1 && espacio > 0)
+      {
+        if (nombreDisponible(mbr.mbr_partition, name))
+        {
+          if (particionExtendidaDisponible(mbr.mbr_partition, type))
+          {
+            int inicio = getInicioParticion(mbr, size);
+            if (inicio != -1)
+            {
+              Particion nuevaParticion = crearParticion(size, name, type, fit, inicio, unidad);
+              mbr.mbr_partition[e_disponiblePos] = nuevaParticion;
+              escribirMBR(mbr, path);
+            }
+            else
+            {
+              cout << "ERROR: No hay espacio para la partición " << name << endl;
+            }
+          }
+          else
+          {
+            cout << "ERROR: Ya existe una particion extendida dentro del disco" << endl;
+          }
+        }
+        else
+        {
+          cout << "ERROR: Ya existe una particion " << name << " en este disco " << endl;
+        }
+      }
+      else
+      {
+        cout << "ERROR: No se pueden hacer más particiones por falta de espacio o cantidad" << endl;
+      }
     }
   }
   else

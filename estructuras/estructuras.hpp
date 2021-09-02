@@ -18,6 +18,7 @@ struct MBR
     int mbr_disk_signature;
     char disk_fit;
     Particion mbr_partition[4];
+    int noLogicas=0;
 };
 
 struct Disco
