@@ -18,7 +18,8 @@ struct MBR
     int mbr_disk_signature;
     char disk_fit;
     Particion mbr_partition[4];
-    int noLogicas=0;
+    Particion logicas[100];
+    int noLogicas;
 };
 
 struct Disco
@@ -27,4 +28,19 @@ struct Disco
     int size;
     char ajuste;
     char unidad;
+};
+
+struct Codigo{
+    int carnet=44;
+    int letra=65;
+    int numero=0;
+    string cod=to_string(carnet)+to_string(numero)+char(letra);
+};
+
+struct ParicionMontada
+{
+    Codigo cod;
+    string path="";
+    string name="";
+    MBR mbr;
 };

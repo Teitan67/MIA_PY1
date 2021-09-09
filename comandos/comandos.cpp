@@ -8,10 +8,39 @@
 #include <cstdlib>
 #include <vector>
 #include <time.h>
+#include <iomanip>
+#include <ctime>
+#include <chrono>
+
 #include "../estructuras/estructuras.hpp"
 
 using namespace std;
 
+vector<ParicionMontada> montadas;
+
+Codigo generarCodigo(vector<ParicionMontada> particionesMontadas, string path)
+{
+  Codigo cod;
+  for (auto &&particionMontada : particionesMontadas)
+  {
+    cod.numero = cod.numero + 1;
+    if (strcasecmp(particionMontada.path.c_str(), path.c_str()))
+    {
+      break;
+    }
+  }
+  for (auto &&particionMontada : particionesMontadas)
+  {
+    if (strcasecmp(particionMontada.path.c_str(), path.c_str()))
+    {
+      cod.letra = cod.letra + 1;
+    }
+  }
+  cod.cod = to_string(cod.carnet) + to_string(cod.numero) + char(cod.letra);
+
+  return cod;
+}
+//mount -path=discos/disco3.disk -name=Particion2
 Particion *burbuja(Particion a[4])
 {
   int i, j;
@@ -25,30 +54,6 @@ Particion *burbuja(Particion a[4])
         a[j] = temp;
       }
   return a;
-}
-
-Particion *getParticionesLogicas(string path){
-  char ruta[path.size() + 1];
-  strcpy(ruta, path.c_str());
-
-  FILE *file = NULL;
-  file = fopen(ruta, "rb");
-  if (file)
-  {
-    MBR mbr=obtenerMbr(path);
-    int noLogicas=mbr.noLogicas;
-    Particion logicas[noLogicas];
-    fseek(file, sizeof(MBR), SEEK_SET);
-    for (int i = 0; i < mbr.noLogicas; i++)
-    {
-      fread(&logicas[i], sizeof(Particion), 1, file);
-      fseek(file, sizeof(Particion), SEEK_SET);
-    }
-    fclose(file);
-    return logicas;
-  }
-  Particion nulas[];
-  return nulas;
 }
 
 bool nombreDisponible(Particion partciones[4], string name)
@@ -88,33 +93,59 @@ Particion getParticionExtendida(Particion partciones[4])
   return pVacia;
 }
 
+MBR obtenerMbr(string path)
+{
+  MBR mbr_;
+  char ruta[path.size() + 1];
+  path.replace(path.size() - 1, 1, "");
+  strcpy(ruta, path.c_str());
 
-int getDisponibleExtendida(Particion extendida, int noLogicas, string path)
+  FILE *file = NULL;
+  file = fopen(ruta, "rb");
+  if (file)
+  {
+    fseek(file, 0, SEEK_SET);
+    fread(&mbr_, sizeof(MBR), 1, file);
+    fclose(file);
+    return mbr_;
+  }
+  cout << "ERROR: No existe el archivo en la ruta #" << ruta << "#" << endl;
+  return mbr_;
+}
+
+int getDisponibleExtendida(Particion extendida, string path)
 {
   int disponible = extendida.part_size;
-  if (noLogicas > 0)
-  {
-    Particion logicas[noLogicas + 1];
-    MBR mbr_;
-    char ruta[path.size() + 1];
-    path.replace(path.size() - 1, 1, "");
-    strcpy(ruta, path.c_str());
+  MBR mbr_ = obtenerMbr(path);
+  char ruta[path.size() + 1];
+  path.replace(path.size() - 1, 1, "");
+  strcpy(ruta, path.c_str());
 
-    FILE *file = NULL;
-    file = fopen(ruta, "rb");
-    if (file)
+  FILE *file = NULL;
+  file = fopen(ruta, "rb");
+  if (file)
+  {
+    fseek(file, 0, SEEK_SET);
+    fwrite(&mbr_, sizeof(MBR), 1, file);
+    fclose(file);
+    for (int i = 0; i < mbr_.noLogicas; i++)
     {
-      fseek(file, sizeof(MBR), SEEK_SET);
-      for (int i = 0; i < noLogicas; i++)
-      {
-        fread(&logicas[i], sizeof(Particion), 1, file);
-        disponible -= logicas[i].part_size;
-        fseek(file, sizeof(Particion), SEEK_SET);
-      }
-      fclose(file);
+      cout << "Disponible " << disponible << " logica de size: " << mbr_.logicas[i].part_size << endl;
+      disponible -= mbr_.logicas[i].part_size;
     }
+    cout << "Disponible " << disponible << endl;
   }
   return disponible;
+}
+string convertToString(char *a)
+{
+  int i;
+  string s = "";
+  for (i = 0; i < strlen(a); i++)
+  {
+    s = s + a[i];
+  }
+  return s;
 }
 void escribirMBR(MBR mbr, string path)
 {
@@ -194,7 +225,7 @@ int espacioDisponible(MBR mbr)
 int espacioTotalDisponible(MBR mbr)
 {
   int espacioDisponible = mbr.mbr_tamano;
-  int espacioOcupado = sizeof(mbr);
+  int espacioOcupado = sizeof(mbr) - sizeof(Particion) * 100;
   for (int i = 0; i < 4; i++)
   {
     espacioOcupado += mbr.mbr_partition[i].part_size;
@@ -222,86 +253,73 @@ vector<string> splits(string str, char pattern)
   return results;
 }
 
-void crearParticionLogica(MBR mbr, string path, int size, string name, char type, char fit, char unidad)
+void imprimirLogicas(string path)
 {
-  int inicioBinario = sizeof(MBR);
-  Particion pExtendida = getParticionExtendida(mbr.mbr_partition);
-  int inicioLogicas = pExtendida.part_start + sizeof(Particion);
-  int finLogicas = pExtendida.part_start + pExtendida.part_size;
-  Particion logicas[mbr.noLogicas + 1];
   char ruta[path.size() + 1];
   strcpy(ruta, path.c_str());
-  if (mbr.noLogicas == 0)
-  {
-    cout << "Inicio de logicas:" << inicioLogicas << endl;
-    cout << "Fin de logicas:" << finLogicas << endl;
-    FILE *file = NULL;
-    file = fopen(ruta, "wb");
-    int movimientoBinario = sizeof(MBR)+1;
-    if (file)
-    {
-      Particion logica;
-      logica.part_status='c';
-      logica.part_type='l';
-      logica.part_fit=fit;
-      logica.part_start=inicioLogicas;
-      logica.part_size=size;
-      strcpy(logica.part_name, name.c_str());
-      fseek(file, movimientoBinario, SEEK_SET);
-      fwrite(&logica, sizeof(Particion), 1, file);
-      fclose(file);
-      cout<<"Archivo creado exitosamente"<<endl;
-    
-    }
-  }
-  mbr.noLogicas=mbr.noLogicas+1;
-  escribirMBR(mbr,path);
+
   FILE *file = NULL;
-  file = fopen(ruta, "rb");
-  int movimientoBinario = sizeof(MBR)+1;
+  file = fopen(ruta, "rb+");
   if (file)
   {
-    fseek(file, movimientoBinario, SEEK_SET);
-    for (int i = 0; i < mbr.noLogicas + 1; i++)
+    MBR mbr;
+    fseek(file, 0, SEEK_SET);
+    fread(&mbr, sizeof(MBR), 1, file);
+    cout << "Numero de particiones: " << mbr.noLogicas << endl;
+
+    for (int i = 0; i < 4; i++)
     {
-      fread(&logicas[i], sizeof(Particion), 1, file);
-      movimientoBinario += sizeof(MBR);
-      fseek(file, movimientoBinario, SEEK_SET);
+      cout << "Inicio Particion: " << mbr.mbr_partition[i].part_start << " Size actual:" << mbr.mbr_partition[i].part_size << endl;
     }
-    fclose(file);
-  }
-  cout << endl
-       << endl;
-  for (int i = 0; i < 4; i++)
-  {
-    cout << "Inicio Particion: " << mbr.mbr_partition[i].part_start << " Size actual:" << mbr.mbr_partition[i].part_size << endl;
-  }
-  cout << endl
-       << "PARICIONES LOGICAS" << endl;
-  for (int i = 0; i < mbr.noLogicas; i++)
-  {
-    cout <<"Nombre de particion: "<<logicas[i].part_name << endl;
+    cout << endl
+         << "PARICIONES LOGICAS" << endl;
+    for (int i = 0; i < mbr.noLogicas; i++)
+    {
+      cout << "Nombre de particion: " << mbr.logicas[i].part_name << endl;
+    }
   }
 }
 
-MBR obtenerMbr(string path)
+void crearParticionLogica(MBR mbr, string path, int size, string name, char type, char fit, char unidad)
 {
-  MBR mbr_;
+  Particion pExtendida = getParticionExtendida(mbr.mbr_partition);
+
   char ruta[path.size() + 1];
-  path.replace(path.size() - 1, 1, "");
   strcpy(ruta, path.c_str());
 
   FILE *file = NULL;
-  file = fopen(ruta, "rb");
+  file = fopen(ruta, "wb");
   if (file)
   {
+    Particion logica;
+    logica.part_status = 'c';
+    logica.part_type = 'l';
+    logica.part_fit = fit;
+    if (mbr.noLogicas > 0)
+    {
+      logica.part_start = mbr.logicas[mbr.noLogicas - 1].part_start + mbr.logicas[mbr.noLogicas - 1].part_size;
+    }
+    else
+    {
+      logica.part_start = sizeof(Particion) + pExtendida.part_start;
+    }
+
+    logica.part_size = size;
+    strcpy(logica.part_name, name.c_str());
+
+    mbr.logicas[mbr.noLogicas] = logica;
+    int nuevoValor = mbr.noLogicas + 1;
+    mbr.noLogicas = nuevoValor;
     fseek(file, 0, SEEK_SET);
-    fread(&mbr_, sizeof(MBR), 1, file);
+    fwrite(&mbr, sizeof(MBR), 1, file);
+    fflush(file);
     fclose(file);
-    return mbr_;
+    escribirMBR(mbr, path);
   }
-  cout << "ERROR: No existe el archivo en la ruta #" << ruta << "#" << endl;
-  return mbr_;
+  else
+  {
+    perror("Creacion de logica error: ");
+  }
 }
 
 void mkdir(string path)
@@ -347,6 +365,7 @@ void mkdisk(string path, int size, char ajuste, char unidad)
   mbr.mbr_tamano = size;
   mbr.mbr_disk_signature = rand() % 1000;
   mbr.mbr_fecha_creacion = time(0);
+  mbr.noLogicas = 0;
   for (int i = 0; i < 4; i++)
   {
     mbr.mbr_partition[i].part_status = '0';
@@ -392,12 +411,12 @@ void fdisk(float size, char unidad, string path, char type, char fit, string nam
       cout << "Validacion extendida " << particionExtendida.part_size << endl;
       if (particionExtendida.part_size > 0)
       {
-        int disponibleExtendida = getDisponibleExtendida(particionExtendida, mbr.noLogicas, path);
+        int disponibleExtendida = getDisponibleExtendida(particionExtendida, path);
         if (disponibleExtendida > size)
         {
           crearParticionLogica(mbr, path, s, name, type, fit, unidad);
+          cout << "Creacion de particion logica correcta" << endl;
         }
-        cout << "Espacio disponible en extendida " << disponibleExtendida << endl;
       }
       else
       {
@@ -446,5 +465,210 @@ void fdisk(float size, char unidad, string path, char type, char fit, string nam
     cout << "ERROR: Error al obtener el mbr" << endl;
   }
 }
+bool validarParticion(MBR mbr, string name)
+{
+  char r[name.size()];
+  strcpy(r, name.c_str());
+  for (auto &&particion : mbr.mbr_partition)
+  {
 
+    if (strcasecmp(r, particion.part_name))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+float porcentaje(int cantidad, int total)
+{
+
+  return cantidad * 100.000 / total;
+}
+void crearReporte(string contenido, string path)
+{
+  char ruta[path.size() + 1];
+  path.replace(path.size() - 1, 1, "");
+
+  char txt[contenido.size() + 1];
+  strcpy(txt, contenido.c_str());
+  FILE *file = fopen("disco.txt", "w");
+  fputs(txt, file);
+  fclose(file);
+  system("dot -Tpng disco.txt -o IMG.png");
+}
+void reporteDeDisco(string pathReporte, string id)
+{
+  cout << "Iniciando creacion" << endl;
+  string path = "";
+  for (auto &&pMontadas : montadas)
+  {
+    if (id.compare(pMontadas.cod.cod))
+    {
+      path = pMontadas.path;
+    }
+  }
+
+  MBR mbr = obtenerMbr(path);
+  int total = sizeof(mbr) - sizeof(Particion) * 100;
+  float mbrSize = porcentaje(total, mbr.mbr_tamano);
+  total = mbr.mbr_tamano;
+  string codGrapViz = "";
+  Particion *particiones = burbuja(mbr.mbr_partition);
+  int inicio = sizeof(MBR);
+
+  codGrapViz += "digraph structs {\ndisco [shape=record,label=\"";
+  codGrapViz += "MBR\\n " + to_string(mbrSize) + "% |";
+  string extendidas = "";
+  int p1 = particiones[0].part_start - inicio;
+  for (int i = 0; i < 4; i++)
+  {
+    if (p1 > 0)
+    {
+      codGrapViz += "Libre \\n " + to_string(porcentaje(p1, total)) + "% \\n |";
+    }
+    if (particiones[i].part_size > 0)
+    {
+      if (particiones[i].part_type == 'e')
+      {
+        codGrapViz += "{" + convertToString(particiones[i].part_name) + "|";
+        extendidas = "EBR";
+        for (auto &&logica : mbr.logicas)
+        {
+          if (logica.part_size > 0)
+          {
+            extendidas += "| " + convertToString(logica.part_name) + " \n " + to_string(porcentaje(logica.part_size, total)) + "%|EBR";
+          }
+        }
+        codGrapViz += extendidas;
+        codGrapViz += "} |";
+      }
+      else
+      {
+        codGrapViz += convertToString(particiones[i].part_name) + " \\n " + to_string(porcentaje(particiones[i].part_size, total)) + "% |";
+      }
+    }
+    p1 = particiones[i + 1].part_start - particiones[i].part_start - particiones[i].part_size;
+  }
+
+  p1 = total - particiones[3].part_start - particiones[3].part_size + sizeof(Particion) * 100;
+  if (p1 > 0)
+  {
+    codGrapViz += "Libre \\n " + to_string(porcentaje(p1, total)) + "% |";
+  }
+
+  codGrapViz += "";
+  codGrapViz += "\\n\"]}";
+  crearReporte(codGrapViz, pathReporte);
+  cout << codGrapViz << endl;
+}
+
+void mount(string path, string name)
+{
+  Codigo cod_ = generarCodigo(montadas, path);
+  MBR mbrAux = obtenerMbr(path);
+  ParicionMontada nuevaMontada = {cod_, path, name, mbrAux};
+  if (validarParticion(mbrAux, name))
+  {
+    montadas.push_back(nuevaMontada);
+    cout << "Path"
+         << "|"
+         << "Nombre Particion"
+         << "|"
+         << "COD" << endl;
+    for (auto &&i : montadas)
+    {
+      cout << i.path << "|" << i.name << "|" << i.cod.cod << endl;
+    }
+  }
+}
+
+void unmount(string id)
+{
+  int index = -1;
+  for (auto &&i : montadas)
+  {
+
+    cout << "ID:" << id << " Comparando: " << i.cod.cod << endl;
+    if (i.cod.cod.compare(id) == 1)
+    {
+      cout << "ACTIVADO" << endl;
+      montadas.erase(montadas.begin() + index);
+    }
+
+    ++index;
+  }
+  cout << "Path"
+       << "|"
+       << "Nombre Particion"
+       << "|"
+       << "COD" << endl;
+  for (auto &&i : montadas)
+  {
+    cout << i.path << "|" << i.name << "|" << i.cod.cod << endl;
+  }
+}
+void reporteMbr(string pathReporte, string id)
+{
+  cout << "Iniciando creacion" << endl;
+  string path = "";
+  for (auto &&pMontadas : montadas)
+  {
+    if (id.compare(pMontadas.cod.cod))
+    {
+      path = pMontadas.path;
+    }
+  }
+
+  MBR mbr = obtenerMbr(path);
+
+  string codGrapViz = "digraph structs {";
+  codGrapViz += "mbr[shape=record,label=\"{nombre|mbr_tamaño|mbr_fechaCreacion|mbr_disk_signature|disk_fit";
+  int i = 0;
+  for (auto &&particion_ : mbr.mbr_partition)
+  {
+    if (particion_.part_size > 0)
+    {
+      codGrapViz += "|part_status_" + to_string(i) + "|part_type_" + to_string(i) + "|part_fit_" + to_string(i) + "|part_stax_" + to_string(i) + "|part_size_" + to_string(i) + "|part_name_" + to_string(i) + "";
+    }
+    i++;
+  }
+  codGrapViz += "}|";
+
+  time_t seconds = mbr.mbr_fecha_creacion;
+
+  std::stringstream ss;
+  ss << seconds;
+  std::string ts = ss.str();
+
+  codGrapViz += "{" + convertToString(mbr.mbr_id) + "_disk|" + to_string(mbr.mbr_tamano) + "|" + "|" + to_string(mbr.mbr_disk_signature) + "|" + to_string(mbr.disk_fit);
+
+  for (auto &&particion_ : mbr.mbr_partition)
+  {
+    if (particion_.part_size > 0)
+    {
+      codGrapViz += "|" + to_string(particion_.part_status) + "|" + particion_.part_type + "|" + particion_.part_fit + "|" + particion_.part_fit + "|" + to_string(particion_.part_size) + "|" + particion_.part_name + "";
+    }
+  }
+  codGrapViz += "}\"];";
+
+  i = 0;
+  for (auto &&logica : mbr.logicas)
+  {
+    if (logica.part_size > 0)
+    {
+      codGrapViz += "" + convertToString(logica.part_name) + " [shape=record,label=\" {part_name_"+to_string(i)+"|part_start_"+to_string(i)+"|part_size_"+to_string(i)+"|part_next"+to_string(i)+"|part_status_"+to_string(i)+"|part_type_"+to_string(i)+"|part_fit_"+to_string(i)+" }|{"+convertToString(logica.part_name)+"|"+to_string(logica.part_start)+"|"+to_string(logica.part_size)+"|"+to_string(logica.part_start+logica.part_size)+"|"+logica.part_status+"|"+logica.part_type+"|"+logica.part_fit+"}\"];";
+    }
+    i++;
+  }
+
+  codGrapViz += "}";
+  crearReporte(codGrapViz, pathReporte);
+  cout << codGrapViz << endl;
+}
 //fdisk -Size=1 -path=discos/disco3.disk -name=Particion1
+//mount -path=discos/disco3.disk -name=Particion2
+//rep -id=440A -name=mbr -path=discos/rep.png
+
+//fdisk -Size=1 -path=disco.disk -name=Particion1
+//mount -path=disco.disk -name=Particion1

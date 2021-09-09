@@ -1,0 +1,5 @@
+digraph structs {
+disco [shape=record,label="MBR\n 2.343750% |Particion1  \n 30.000000% |Particion2 \n 10.000000% |{ParticionExt |EBR| LOGICA1  
+ 10.000000%|EBR| LOGICA2  
+ 10.000000%|EBR| LOGICA3  
+ 10.000000%|EBR} |Particion1 \n 10.000000% |Libre \n 17.656250% |\n"]}

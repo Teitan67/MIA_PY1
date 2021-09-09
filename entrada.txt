@@ -4,3 +4,8 @@ fdisk -size=3 -path=discos/disco3.disk -name=Particion1
 fdisk -size=1 -path=discos/disco3.disk -name=Particion2
 fdisk -size=3 -path=discos/disco3.disk -name=ParticionExt -type=e
 fdisk -size=1 -path=discos/disco3.disk -name=LOGICA1 -type=l
+pausa
+fdisk -size=1 -path=discos/disco3.disk -name=LOGICA2 -type=l
+pausa
+fdisk -size=1 -path=discos/disco3.disk -name=LOGICA3 -type=l
+pausa

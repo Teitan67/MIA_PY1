@@ -36,7 +36,7 @@ vector<string> split(string str, char pattern)
 
 bool analizar(string entrada)
 {
-    
+
     //Separamos el comando en un arreglo de cadenas
     vector<string> comando = split(entrada, '-');
 
@@ -51,6 +51,54 @@ bool analizar(string entrada)
     else if (comando[0] == "?")
     {
         cout << listaComandos << endl;
+    }
+    else if (comando[0] == "rep ")
+    {
+        string id = "";
+        string path = "";
+        string name = "";
+        for (size_t i = 1; i < comando.size(); i++)
+        {
+            vector<string> parametro = split(comando[i], '=');
+            if (parametro.size() == 2)
+            {
+                //Parametro
+
+                std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                              { c = ::tolower(c); });
+                if (parametro[0] == "id")
+                {
+                    id = parametro[1];
+                }
+                else if (parametro[0] == "path")
+                {
+                    path = parametro[1];
+                }
+                else if (parametro[0] == "name")
+                {
+                    name = parametro[1];
+                }
+            }
+            else
+            {
+                cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+            }
+        }
+        if (name.compare("mbr")==1)
+        {
+            reporteMbr(path,id);
+        }
+        else if(name.compare("disk")==1)
+        {
+            reporteDeDisco(path,id);
+        }
+        else
+        {
+            cout<<"Error name no valido #"<<name<<"#"<<endl;
+        }
+        //mount -path=discos/disco3.disk -name=Particion2
+        //rep -id=561A -Path=/home/user/reports/reporte1.jpg -name=mbr 
+        //rep -id=440A -name=disk -Path=/home/user/reports/reporte1.jpg 
     }
     else if (comando[0] == "mkdisk ")
     {
@@ -112,6 +160,59 @@ bool analizar(string entrada)
             cout << "ERROR: cantidad de parametros insuficientes " << endl;
         }
     }
+    else if (comando[0] == "mount ")
+    {
+        string name = "";
+        string path = "";
+        for (size_t i = 1; i < comando.size(); i++)
+        {
+            vector<string> parametro = split(comando[i], '=');
+            if (parametro.size() == 2)
+            {
+                //Parametro
+                std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                              { c = ::tolower(c); });
+                if (parametro[0] == "path")
+                {
+                    path = parametro[1];
+                }
+                else if (parametro[0] == "name")
+                {
+                    name = parametro[1];
+                }
+            }
+            else
+            {
+                cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+            }
+        }
+        mount(path, name);
+        //fdisk -Size=300 -path=/home/Disco1.disk -name=Particion1
+        //exec -path=entrada.txt
+    }
+    else if (comando[0] == "unmount ")
+    {
+        string id = "";
+        for (size_t i = 1; i < comando.size(); i++)
+        {
+            vector<string> parametro = split(comando[i], '=');
+            if (parametro.size() == 2)
+            {
+                //Parametro
+                std::for_each(parametro[0].begin(), parametro[0].end(), [](char &c)
+                              { c = ::tolower(c); });
+                if (parametro[0] == "id")
+                {
+                    id = parametro[1];
+                }
+            }
+            else
+            {
+                cout << "ERROR: No hay congruencia en este parametro: " << comando[i] << endl;
+            }
+        }
+        unmount(id);
+    }
     else if (comando[0] == "rmdisk ")
     {
         if (comando.size() == 2)
@@ -155,10 +256,10 @@ bool analizar(string entrada)
             cout << "ERROR:Cantidad de parametros incorrecta" << endl;
         }
     }
-    else if (comando[0] == "pausa "||comando[0] == "pausa")
+    else if (comando[0] == "pausa " || comando[0] == "pausa")
     {
-        string r="";
-        cout<<"Escriba enter para continuar...";
+        string r = "";
+        cout << "Escriba enter para continuar...";
         getline(cin, r, '\n');
     }
     else if (comando[0] == "exec ")
@@ -251,13 +352,13 @@ bool analizar(string entrada)
             }
         }
         //fdisk -Size=300 -path=/home/Disco1.disk -name=Particion1
-        //exec -path=entrada.txt 
+        //exec -path=entrada.txt
         if (delete_ == "nulo" && add == 0)
         {
             //cout << "Creando particion..." << endl;
             fdisk(size, u, path, type, f, name);
+        }else if(delete_ == "nulo"){
 
-            
         }
         else
         {
@@ -269,6 +370,6 @@ bool analizar(string entrada)
         cout << "ERROR: Comando no reconocido! #" << comando[0] << "#" << endl
              << endl;
     }
-    cout<<endl;
+    cout << endl;
     return true;
 }
