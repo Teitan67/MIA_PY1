@@ -1,1 +1,5 @@
-digraph structs {mbr[shape=record,label="{nombre|mbr_tamaÃ±o|mbr_fechaCreacion|mbr_disk_signature|disk_fit|part_status_0|part_type_0|part_fit_0|part_stax_0|part_size_0|part_name_0|part_status_2|part_type_2|part_fit_2|part_stax_2|part_size_2|part_name_2}|{øWUUU_disk|10240||383|0|99|p|w|w|3072|Particion1 |99|e|w|w|3072|ParticionExt }"];LOGICA1  [shape=record,label=" {part_name_0|part_start_0|part_size_0|part_next0|part_status_0|part_type_0|part_fit_0 }|{LOGICA1 |8780|1024|9804|c|l|w}"];LOGICA2  [shape=record,label=" {part_name_1|part_start_1|part_size_1|part_next1|part_status_1|part_type_1|part_fit_1 }|{LOGICA2 |9804|1024|10828|c|l|w}"];LOGICA3  [shape=record,label=" {part_name_2|part_start_2|part_size_2|part_next2|part_status_2|part_type_2|part_fit_2 }|{LOGICA3 |10828|1024|11852|c|l|w}"];}
+digraph structs {
+disco [shape=record,label="MBR\n 2.343750% |Particion1  \n 30.000000% |Particion2  \n 10.000000% |{ParticionExt |EBR| LOGICA1  
+ 10.000000%|EBR| LOGICA2  
+ 10.000000%|EBR| LOGICA3  
+ 10.000000%|EBR} |Libre \n 42.968750% |\n"]}
