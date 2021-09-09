@@ -359,6 +359,9 @@ bool analizar(string entrada)
             fdisk(size, u, path, type, f, name);
         }else if(delete_.compare("fast")||delete_.compare("full")){
             borrarParticion(name,path);
+        }else if(add!=0){
+            //fdisk -add=-500 –size=10 -u=K -path="/home/misdiscos/Disco4.disk" -name=Particion4
+            agregar(add,size,u,path,name);
         }
         else
         {
@@ -374,3 +377,4 @@ bool analizar(string entrada)
     return true;
 }
 //fdisk -path=discos/disco3.disk -name=Particion1 -delete=full
+

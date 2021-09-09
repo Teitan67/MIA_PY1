@@ -2,6 +2,7 @@
 #include "../estructuras/estructuras.hpp"
 using namespace std;
 
+void agregar(float add,int size,char u,string path,string name);
 void borrarParticion(string ,string );
 MBR getMBR(string );
 void unmount(string);

@@ -7,5 +7,5 @@ fdisk -size=1 -path=discos/disco3.disk -name=LOGICA1 -type=l
 fdisk -size=1 -path=discos/disco3.disk -name=LOGICA2 -type=l
 fdisk -size=1 -path=discos/disco3.disk -name=LOGICA3 -type=l
 mount -path=discos/disco3.disk -name=Particion2
-fdisk -path=discos/disco3.disk -name=ParticionExt -delete=full
+fdisk -add=500 -u=K -path=discos/disco3.disk -name=Particion2 
 rep -id=440A -name=mbr -path=discos/rep.png

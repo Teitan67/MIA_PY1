@@ -673,10 +673,10 @@ void borrarParticion(string name, string path)
   MBR mbrAux = obtenerMbr(path);
   for (auto &&i : mbrAux.mbr_partition)
   {
-    cout<<"comarar "<<r<<"-"<<i.part_name<<endl;
+    cout << "comarar " << r << "-" << i.part_name << endl;
     if (!strcasecmp(r, i.part_name))
     {
-      cout<<"ACTIVADO"<<endl;
+      cout << "ACTIVADO" << endl;
       i.part_size = 0;
       if (i.part_type == 'e')
       {
@@ -694,7 +694,47 @@ void borrarParticion(string name, string path)
       i.part_size = 0;
     }
   }
-  
+
+  escribirMBR(mbrAux, path);
+}
+
+void agregar(float add, int size, char u, string path, string name)
+{
+  if (u == 'k')
+  {
+    add = add * 1024;
+  }
+  else
+  {
+    add = add * 1024 * 1024;
+  }
+  char r[name.size()];
+  strcpy(r, name.c_str());
+  MBR mbrAux = obtenerMbr(path);
+  for (auto &&i : mbrAux.mbr_partition)
+  {
+    cout << "comarar " << r << "-" << i.part_name << endl;
+    if (!strcasecmp(r, i.part_name))
+    {
+      cout << "ACTIVADO" << endl;
+      i.part_size = i.part_size+add;
+      if (i.part_type == 'e')
+      {
+        for (auto &&a : mbrAux.logicas)
+        {
+          a.part_size = i.part_size+add;
+        }
+      }
+    }
+  }
+  for (auto &&i : mbrAux.logicas)
+  {
+    if (!strcasecmp(r, i.part_name))
+    {
+      i.part_size =i.part_size+add;
+    }
+  }
+
   escribirMBR(mbrAux, path);
 }
 //fdisk -Size=1 -path=discos/disco3.disk -name=Particion1
