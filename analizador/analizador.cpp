@@ -357,8 +357,8 @@ bool analizar(string entrada)
         {
             //cout << "Creando particion..." << endl;
             fdisk(size, u, path, type, f, name);
-        }else if(delete_ == "nulo"){
-
+        }else if(delete_.compare("fast")||delete_.compare("full")){
+            borrarParticion(name,path);
         }
         else
         {
@@ -373,3 +373,4 @@ bool analizar(string entrada)
     cout << endl;
     return true;
 }
+//fdisk -path=discos/disco3.disk -name=Particion1 -delete=full

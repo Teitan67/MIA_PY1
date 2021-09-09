@@ -471,7 +471,6 @@ bool validarParticion(MBR mbr, string name)
   strcpy(r, name.c_str());
   for (auto &&particion : mbr.mbr_partition)
   {
-
     if (strcasecmp(r, particion.part_name))
     {
       return true;
@@ -657,7 +656,7 @@ void reporteMbr(string pathReporte, string id)
   {
     if (logica.part_size > 0)
     {
-      codGrapViz += "" + convertToString(logica.part_name) + " [shape=record,label=\" {part_name_"+to_string(i)+"|part_start_"+to_string(i)+"|part_size_"+to_string(i)+"|part_next"+to_string(i)+"|part_status_"+to_string(i)+"|part_type_"+to_string(i)+"|part_fit_"+to_string(i)+" }|{"+convertToString(logica.part_name)+"|"+to_string(logica.part_start)+"|"+to_string(logica.part_size)+"|"+to_string(logica.part_start+logica.part_size)+"|"+logica.part_status+"|"+logica.part_type+"|"+logica.part_fit+"}\"];";
+      codGrapViz += "" + convertToString(logica.part_name) + " [shape=record,label=\" {part_name_" + to_string(i) + "|part_start_" + to_string(i) + "|part_size_" + to_string(i) + "|part_next" + to_string(i) + "|part_status_" + to_string(i) + "|part_type_" + to_string(i) + "|part_fit_" + to_string(i) + " }|{" + convertToString(logica.part_name) + "|" + to_string(logica.part_start) + "|" + to_string(logica.part_size) + "|" + to_string(logica.part_start + logica.part_size) + "|" + logica.part_status + "|" + logica.part_type + "|" + logica.part_fit + "}\"];";
     }
     i++;
   }
@@ -666,9 +665,41 @@ void reporteMbr(string pathReporte, string id)
   crearReporte(codGrapViz, pathReporte);
   cout << codGrapViz << endl;
 }
+
+void borrarParticion(string name, string path)
+{
+  char r[name.size()];
+  strcpy(r, name.c_str());
+  MBR mbrAux = obtenerMbr(path);
+  for (auto &&i : mbrAux.mbr_partition)
+  {
+    cout<<"comarar "<<r<<"-"<<i.part_name<<endl;
+    if (!strcasecmp(r, i.part_name))
+    {
+      cout<<"ACTIVADO"<<endl;
+      i.part_size = 0;
+      if (i.part_type == 'e')
+      {
+        for (auto &&a : mbrAux.logicas)
+        {
+          a.part_size = 0;
+        }
+      }
+    }
+  }
+  for (auto &&i : mbrAux.logicas)
+  {
+    if (!strcasecmp(r, i.part_name))
+    {
+      i.part_size = 0;
+    }
+  }
+  
+  escribirMBR(mbrAux, path);
+}
 //fdisk -Size=1 -path=discos/disco3.disk -name=Particion1
 //mount -path=discos/disco3.disk -name=Particion2
 //rep -id=440A -name=mbr -path=discos/rep.png
-
+//fdisk -path=discos/disco3.disk -name=Particion1 -delete=full
 //fdisk -Size=1 -path=disco.disk -name=Particion1
 //mount -path=disco.disk -name=Particion1

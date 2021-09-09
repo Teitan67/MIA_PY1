@@ -1,5 +1,1 @@
-digraph structs {
-disco [shape=record,label="MBR\n 2.343750% |Particion1  \n 30.000000% |Particion2 \n 10.000000% |{ParticionExt |EBR| LOGICA1  
- 10.000000%|EBR| LOGICA2  
- 10.000000%|EBR| LOGICA3  
- 10.000000%|EBR} |Particion1 \n 10.000000% |Libre \n 17.656250% |\n"]}
+digraph structs {mbr[shape=record,label="{nombre|mbr_tamaÃ±o|mbr_fechaCreacion|mbr_disk_signature|disk_fit|part_status_0|part_type_0|part_fit_0|part_stax_0|part_size_0|part_name_0|part_status_1|part_type_1|part_fit_1|part_stax_1|part_size_1|part_name_1}|{øWUUU_disk|10240||383|0|99|p|w|w|3072|Particion1 |99|p|w|w|1024|Particion2 }"];}
