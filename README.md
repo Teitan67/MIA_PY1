@@ -52,6 +52,8 @@ en una carpeta existente, son reportes mbr y de disco los existentes
 Mostrará tablas con toda la información del MBR, así como de
 los EBR que se pudieron haber creado
 
+![Screenshot](IMG.png)
+
 ## REPORTE DISK
 
 Este reporte mostrará la estructura de las particiones, el mbr del
@@ -59,7 +61,7 @@ disco y el porcentaje que cada partición o espacio libre tiene dentro
 del disco (La sumatoria de los porcentajes debe de ser 100%).
 A continuacion se muestran un ejemplo de los reporetes 
 
-![Screenshot](IMG.png)
+![Screenshot](IMG2.png)
 
 ### Ejemplo de archivo de entrada
 
